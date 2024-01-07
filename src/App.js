@@ -3,6 +3,8 @@ import Header from "./components/Header";
 import RecipeExcerpt from "./components/RecipeExcerpt"; // Ensure correct spelling
 import RecipeFull from "./components/RecipeFull";
 import NewRecipeForm from "./components/NewRecipeForm";
+import { ToastContainer } from "react-toastify";
+import displayToast from "./helpers/toastHelper";
 import "./App.css";
 
 function App() {
@@ -28,10 +30,10 @@ function App() {
           const data = await response.json();
           setRecipes(data);
         } else {
-          console.log("Oops - could not fetch recipes!"); // Updated error message
+          displayToast("Oops - could not fetch recipes!", "error"); // Updated error message
         }
       } catch (e) {
-        console.error("An error occurred during the request:", e);
+        displayToast("An error occurred during the request:", "error");
       }
     };
     fetchAllRecipes();
@@ -50,7 +52,7 @@ function App() {
       if (response.ok) {
         const data = await response.json();
         setRecipes([...recipes, data.recipe]);
-        console.log("Recipe added successfully!");
+        displayToast("Recipe added successfully!", "success");
         setShowNewRecipeForm(false);
         setNewRecipe({
           title: "",
@@ -62,10 +64,10 @@ function App() {
             "https://images.pexels.com/photos/9986228/pexels-photo-9986228.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
         });
       } else {
-        console.error("Oops - could not add recipe!");
+        displayToast("Oops - could not add recipe!", "error");
       }
     } catch (e) {
-      console.error("An error occurred during the request:", e);
+      displayToast("An error occurred during the request:", "error");
     }
   };
 
@@ -90,12 +92,12 @@ function App() {
             return recipe;
           })
         );
-        console.log("Recipe updated!");
+        displayToast("Recipe updated!", "success");
       } else {
-        console.error("Failed to update recipe. Please try again.");
+        displayToast("Failed to update recipe. Please try again.", "error");
       }
     } catch (error) {
-      console.error("An unexpected error occurred. Please try again later.");
+      displayToast("An unexpected error occurred. Please try again later.", "error");
     }
     setSelectedRecipe(null);
   };
@@ -109,21 +111,21 @@ function App() {
       if (response.ok) {
         setRecipes(recipes.filter((recipe) => recipe.id !== recipeId));
         setSelectedRecipe(null);
-        console.log("Recipe deleted successfully!");
+        displayToast("Recipe deleted successfully!", "success");
       } else {
-        console.error("Oops - could not delete recipe!");
+        displayToast("Oops - could not delete recipe!", "error");
       }
     } catch (e) {
-      console.error("Something went wrong during the request:", e);
-      console.error("An unexpected error occurred. Please try again later.");
+      displayToast("An unexpected error occurred. Please try again later.", "error");
     }
   };
   const handleSearch = () => {
     const searchResults = recipes.filter((recipe) => {
       const valuesToSearch = [recipe.title, recipe.ingredients, recipe.description];
-      // Check if the search term is included in any of the values and will return a boolean value
       return valuesToSearch.some((value) => value.toLowerCase().includes(searchTerm.toLowerCase()));
     });
+
+
 
     return searchResults;
   };
@@ -160,11 +162,16 @@ function App() {
     }
   };
 
+  const displayAllRecipes = () => {
+    hideRecipeForm();
+    handleUnselectRecipe();
+    updateSearchTerm("");
+  };
   const displayedRecipes = searchTerm ? handleSearch() : recipes;
 
   return (
     <div className='recipe-app'>
-      <Header showRecipeForm={showRecipeForm} updateSearchTerm={updateSearchTerm} searchTerm={searchTerm} />
+      <Header showRecipeForm={showRecipeForm} updateSearchTerm={updateSearchTerm} searchTerm={searchTerm} displayAllRecipes={displayAllRecipes}/>
       {showNewRecipeForm && <NewRecipeForm newRecipe={newRecipe} hideRecipeForm={hideRecipeForm} onUpdateForm={onUpdateForm} handleNewRecipe={handleNewRecipe}/>}
       {selectedRecipe && <RecipeFull selectedRecipe={selectedRecipe} handleUnselectRecipe={handleUnselectRecipe} handleUpdateRecipe={handleUpdateRecipe} onUpdateForm={onUpdateForm} handleDeleteRecipe={handleDeleteRecipe} />}
       {!selectedRecipe && !showNewRecipeForm && (
@@ -174,6 +181,7 @@ function App() {
           ))}
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 };
